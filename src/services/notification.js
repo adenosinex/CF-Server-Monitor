@@ -630,42 +630,57 @@ function buildWebhookBody(settings, context, format) {
   return renderTemplate(rawBody, context);
 }
 
+// Fork patch: context used for a fallback attempt. The delivered notification
+// must show that the primary channel failed, so the recipient knows the
+// primary needs attention. Marker text is Chinese (deployment language);
+// {{event}} feeds the subject line, {{notification}} the body.
+function buildFallbackContext(context) {
+  return {
+    ...context,
+    event: `[备用] ${context.event || ''}`.trim(),
+    notification: `⚠️ 主通知通道发送失败，本通知经备用通道发出，请检查主通道。\n\n${context.notification || ''}`
+  };
+}
+
 async function sendCustomWebhookNotification(settings, context) {
   const method = normalizeNotificationWebhookMethod(settings.notification_webhook_method);
   const format = normalizeNotificationWebhookFormat(settings.notification_webhook_format);
-  const endpoint = buildWebhookUrl(settings, context, method);
-  const headers = parseWebhookHeaders(settings.notification_webhook_headers, context);
-  const options = { method, headers };
-
-  if (method !== 'GET') {
-    const contentTypeHeader = Object.keys(headers).find(key => key.toLowerCase() === 'content-type');
-    if (!contentTypeHeader) {
-      headers['Content-Type'] = format === 'json'
-        ? 'application/json'
-        : (format === 'form' ? 'application/x-www-form-urlencoded' : 'text/plain; charset=utf-8');
-    }
-    options.body = buildWebhookBody(settings, context, format);
-  }
-
-  // Fork patch: optional fallback webhook URL. Tried only after the primary
-  // endpoint exhausts its retries; same method/headers/body. Empty = old behavior.
-  const endpoints = [endpoint];
+  // Fork patch: optional fallback webhook URL. The primary endpoint is tried
+  // first; only after its retries are exhausted is the fallback tried, with
+  // the request re-rendered from a marked context. Empty = old behavior.
+  const rawUrls = [String(settings.notification_webhook_url || '')];
   const fallbackRaw = String(settings.notification_webhook_fallback_url || '').trim();
-  if (fallbackRaw) {
-    try {
-      endpoints.push(buildWebhookUrl(settings, context, method, fallbackRaw));
-    } catch (_) {
-      // Invalid fallback URL: keep primary-only behavior.
-    }
-  }
+  if (fallbackRaw) rawUrls.push(fallbackRaw);
+
   let lastError = null;
-  for (let i = 0; i < endpoints.length; i++) {
+  for (let i = 0; i < rawUrls.length; i++) {
+    const attemptContext = i === 0 ? context : buildFallbackContext(context);
+    let endpoint;
     try {
-      await fetchWithRetry(endpoints[i], options);
+      endpoint = buildWebhookUrl(settings, attemptContext, method, rawUrls[i]);
+    } catch (e) {
+      // A missing/invalid primary URL fails exactly as before. A bad fallback
+      // URL is skipped, keeping the primary's error as the reported cause.
+      if (i === 0) throw e;
+      continue;
+    }
+    const headers = parseWebhookHeaders(settings.notification_webhook_headers, attemptContext);
+    const options = { method, headers };
+    if (method !== 'GET') {
+      const contentTypeHeader = Object.keys(headers).find(key => key.toLowerCase() === 'content-type');
+      if (!contentTypeHeader) {
+        headers['Content-Type'] = format === 'json'
+          ? 'application/json'
+          : (format === 'form' ? 'application/x-www-form-urlencoded' : 'text/plain; charset=utf-8');
+      }
+      options.body = buildWebhookBody(settings, attemptContext, format);
+    }
+    try {
+      await fetchWithRetry(endpoint, options);
       return;
     } catch (e) {
       lastError = e;
-      if (i < endpoints.length - 1) {
+      if (i < rawUrls.length - 1) {
         console.warn('[Notification] primary webhook failed, trying fallback:', e?.message || e);
       }
     }
