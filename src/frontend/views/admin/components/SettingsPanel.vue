@@ -440,6 +440,24 @@
 
           <div class="form-row">
             <div class="form-group flex-1">
+              <label class="form-label">{{ trans.webhookFallbackUrl || 'Fallback Webhook URL' }}</label>
+              <input
+                type="text"
+                name="notification_webhook_fallback_url"
+                autocomplete="off"
+                data-lpignore="true"
+                data-1p-ignore="true"
+                data-bwignore="true"
+                data-form-type="other"
+                v-model="settings.notification_webhook_fallback_url"
+                class="form-input"
+                placeholder="https://backup.example.com/webhook"
+              >
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
               <label class="form-label">{{ trans.webhookHeaders || 'Headers' }}</label>
               <textarea
                 v-model="settings.notification_webhook_headers"

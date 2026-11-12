@@ -267,6 +267,7 @@ export default {
   smtpConfigInvalid: 'Konfigurasi SMTP tidak lengkap, periksa pengaturan SMTP',
   smtpTip: 'Mengirim email teks biasa melalui cloudflare:sockets (port 25 diblokir oleh Cloudflare Workers). QQ / 163 memerlukan kode otorisasi SMTP, bukan kata sandi login.',
   webhookUrl: 'URL Webhook',
+  webhookFallbackUrl: 'URL Webhook Cadangan',
   webhookMethod: 'Metode',
   webhookFormat: 'Format Body',
   webhookHeaders: 'Header',

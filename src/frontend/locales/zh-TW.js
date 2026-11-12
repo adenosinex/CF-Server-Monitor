@@ -268,6 +268,7 @@ export default {
   smtpConfigInvalid: 'SMTP 設定不完整，請檢查 SMTP 通知設定',
   smtpTip: '透過 cloudflare:sockets 傳送純文字郵件（Cloudflare Workers 不支援 25 連接埠）。QQ / 163 需填寫 SMTP 授權碼而非登入密碼。',
   webhookUrl: 'Webhook URL',
+  webhookFallbackUrl: '備用 Webhook URL',
   webhookMethod: '請求方法',
   webhookFormat: 'Body 格式',
   webhookHeaders: '請求標頭',

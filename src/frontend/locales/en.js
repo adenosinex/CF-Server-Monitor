@@ -267,6 +267,7 @@ export default {
   smtpConfigInvalid: 'SMTP configuration is incomplete, please check the SMTP settings',
   smtpTip: 'Sends plain-text email via cloudflare:sockets (port 25 is blocked by Cloudflare Workers). QQ / 163 require an SMTP authorization code, not the login password.',
   webhookUrl: 'Webhook URL',
+  webhookFallbackUrl: 'Fallback Webhook URL',
   webhookMethod: 'Method',
   webhookFormat: 'Body Format',
   webhookHeaders: 'Headers',

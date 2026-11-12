@@ -267,6 +267,7 @@ export default {
   smtpConfigInvalid: 'La configuración SMTP está incompleta; revisa los ajustes de SMTP',
   smtpTip: 'Envía correos de texto plano mediante cloudflare:sockets (Cloudflare Workers bloquea el puerto 25). QQ / 163 requieren un código de autorización SMTP, no la contraseña de inicio de sesión.',
   webhookUrl: 'Webhook URL',
+  webhookFallbackUrl: 'URL de webhook de respaldo',
   webhookMethod: 'Método',
   webhookFormat: 'Formato del cuerpo',
   webhookHeaders: 'Encabezados',

@@ -593,8 +593,8 @@ function buildWebhookQueryParams(settings, context) {
   return Array.from(params.entries());
 }
 
-function buildWebhookUrl(settings, context, method) {
-  const rawUrl = settings.notification_webhook_url;
+function buildWebhookUrl(settings, context, method, rawUrlOverride) {
+  const rawUrl = rawUrlOverride !== undefined ? rawUrlOverride : settings.notification_webhook_url;
   const renderedUrl = renderTemplate(String(rawUrl || '').trim(), context);
   if (!renderedUrl) throw new Error('missing webhook url');
 
@@ -647,7 +647,30 @@ async function sendCustomWebhookNotification(settings, context) {
     options.body = buildWebhookBody(settings, context, format);
   }
 
-  await fetchWithRetry(endpoint, options);
+  // Fork patch: optional fallback webhook URL. Tried only after the primary
+  // endpoint exhausts its retries; same method/headers/body. Empty = old behavior.
+  const endpoints = [endpoint];
+  const fallbackRaw = String(settings.notification_webhook_fallback_url || '').trim();
+  if (fallbackRaw) {
+    try {
+      endpoints.push(buildWebhookUrl(settings, context, method, fallbackRaw));
+    } catch (_) {
+      // Invalid fallback URL: keep primary-only behavior.
+    }
+  }
+  let lastError = null;
+  for (let i = 0; i < endpoints.length; i++) {
+    try {
+      await fetchWithRetry(endpoints[i], options);
+      return;
+    } catch (e) {
+      lastError = e;
+      if (i < endpoints.length - 1) {
+        console.warn('[Notification] primary webhook failed, trying fallback:', e?.message || e);
+      }
+    }
+  }
+  throw lastError || new Error('Max retries exceeded');
 }
 
 // SMTP 通知复用 tg_bot_token 字段，配置以 "smtp:" 前缀协议存储（方案 A）。

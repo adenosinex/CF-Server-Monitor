@@ -268,6 +268,7 @@ export default {
   smtpConfigInvalid: 'SMTP 配置不完整，请检查 SMTP 通知设置',
   smtpTip: '通过 cloudflare:sockets 发送纯文本邮件（Cloudflare Workers 不支持 25 端口）。QQ / 163 需填写 SMTP 授权码而非登录密码。',
   webhookUrl: 'Webhook URL',
+  webhookFallbackUrl: '备用 Webhook URL',
   webhookMethod: '请求方法',
   webhookFormat: 'Body 格式',
   webhookHeaders: '请求头',

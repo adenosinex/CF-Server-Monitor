@@ -267,6 +267,7 @@ export default {
   smtpConfigInvalid: 'SMTP 設定が不完全です。SMTP 設定を確認してください',
   smtpTip: 'cloudflare:sockets 経由でプレーンテキストメールを送信します（ポート 25 は Cloudflare Workers によりブロックされています）。QQ / 163 はログインパスワードではなく SMTP 認証コードが必要です。',
   webhookUrl: 'Webhook URL',
+  webhookFallbackUrl: 'フォールバック Webhook URL',
   webhookMethod: 'メソッド',
   webhookFormat: 'ボディ形式',
   webhookHeaders: 'ヘッダー',
